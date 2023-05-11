@@ -1,0 +1,17 @@
+.include beta.uasm
+
+CMOVE(2, R1)
+CMOVE(4, R2)
+CMOVE(0, R3)
+
+CMPLT(R1, R2, R4)
+BEQ(R4, if_true)
+MOVE(R2, R3)
+BR(done)
+
+if_true:
+MOVE(R1, R3)
+
+done:
+ADDC(R3, 1, R3)
+HALT()

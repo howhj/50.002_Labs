@@ -1,0 +1,15 @@
+.include beta.uasm
+
+CMOVE(5, R1)
+CMOVE(0, R2)
+CMOVE(0, R3)
+CMPLT(R3, R1, R4)
+BNE(R4, loop, R5)
+HALT()
+
+loop:
+ADD(R2, R3, R2)
+ADDC(R3, 1, R3)
+CMPLT(R3, R1, R4)
+BNE(R4, loop)
+JMP(R5)

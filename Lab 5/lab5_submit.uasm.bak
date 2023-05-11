@@ -1,0 +1,103 @@
+.include beta.uasm
+.include lab5checkoff.uasm
+
+count_bull_cows: | your subroutine must have this name
+	| standard subroutine entry sequence
+	PUSH(LP)	
+	PUSH(BP)	
+	MOVE(SP,BP)	
+	| PUSH all used registers
+	PUSH(R1)		| bulls
+	PUSH(R2)		| cows
+	PUSH(R3)		| i
+	PUSH(R4)		| j
+	PUSH(R5)		| btemp
+	PUSH(R6)		| atry
+	PUSH(R7)		| btry
+	PUSH(R8)		| mask
+	PUSH(R9)		| temp reg
+	PUSH(R10)		| temp reg
+	PUSH(R11)		| a
+	PUSH(R12)		| b
+	LD(BP,-12,R11)		| load the arg value of constant a to R11
+	LD(BP,-16,R12)		| load the arg value of constant b to R12
+	CMOVE(0,R1)		| set initial val of var bulls = 0
+	CMOVE(0xF,R8)		| set initial val of var mask = 0xF
+	CMOVE(0,R3)		| set initial val of var i = 0
+  	CMOVE(0,R4)   		| set initial val of var j = 0
+	
+	|||||||||||||||||||||||||||||||||||||||||||||||
+	|||| your code here, leave score (return value) in R0
+	|||||||||||||||||||||||||||||||||||||||||||||||
+	count_bulls:
+		AND(R11, R8, R9) | a & mask
+		AND(R12, R8, R10) | b & mask
+		CMPEQ(R9, R10, R9) | if ((a & mask) == (b & mask))
+		BNE(R9, if_bull, R10)
+		SHLC(R8, 4, R8) | mask = mask << 4
+		ADDC(R3, 1, R3) | for (i=0; i<4 i++)
+		CMPLTC(R3, 4, R9)
+		BNE(R9, count_bulls)
+	
+	CMOVE(0, R2) | cows = 0
+	CMOVE(0, R3) | i = 0
+
+	count_cows:
+		ANDC(R11, 0xF, R6) | atry = a & 0xF
+		SRAC(R11, 4, R11) | a = a >> 4
+		CMPEQC(R6, 0xF, R9) | if (atry != 0xF)
+		BEQ(R9, if_not_bull, R10)
+		ADDC(R3, 1, R3) | for (i=0, i<4, i++)
+		CMPLTC(R3, 4, R9)
+		BNE(R9, count_cows)
+
+	SHLC(R1, 4, R9) | bulls << 4
+	ADD(R9, R2, R0) | return bulls << 4 + cows
+
+	| POP saved registers above in reverse order
+	POP(R12)
+	POP(R11)
+	POP(R10)
+	POP(R9)
+	POP(R8)
+	POP(R7)
+	POP(R6)
+	POP(R5)
+	POP(R4)
+	POP(R3)
+	POP(R2)
+	POP(R1)
+	MOVE(BP,SP)
+	POP(BP)
+	POP(LP)
+	RTN()
+
+if_bull:
+	ADDC(R1, 1, R1) | bulls = bulls + 1
+	OR(R11, R8, R11) | a = a | mask
+	OR(R12, R8, R12) | b = b | mask
+	JMP(R10)
+	
+if_not_bull:
+	MOVE(R12, R5) | btemp = b
+	CMOVE(0xF, R8) | mask = 0xF
+
+check_cows:
+	ANDC(R5, 0xF, R7) | btry = btemp & 0xF
+	SRAC(R5, 4, R5) | btemp = btemp >> 4
+	CMPEQ(R6, R7, R9) | if (btry == atry)
+	BNE(R9, is_cow, R9)
+	SHLC(R8, 4, R8) | mask = mask << 4
+	ADDC(R4, 1, R4) | for (j=0; j<4; j++)
+	CMPLTC(R4, 4, R9)
+	BNE(R9, check_cows)
+	JMP(R10)
+
+is_cow:
+	ADDC(R2, 1, R2) | cows = cows + 1
+	OR(R12, R8, R12) | b = b | mask
+	JMP(R10)
+
+StackBase: 
+	LONG(.+4)		| Pointer to the bottom of stack
+	.=.+0x1000		| Reserve space for stack

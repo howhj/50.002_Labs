@@ -1,0 +1,26 @@
+.include "nominal.jsim"
+.include "stdcell.jsim"
+.include "lab4_control.jsim"
+.include "lab4_pc.jsim"
+.include "lab4_regfile.jsim"
+.include "lab4_aluwdsel.jsim"
+.include "lab4_adder.jsim"
+.include "lab4_alu.jsim"
+.include "lab4checkoff.jsim"
+
+
+.subckt beta clk reset irq ia[31:0] id[31:0] ma[31:0] moe mrd[31:0] wr mwd[31:0]
+* BEGIN ANSWER
+* initialise pc unit circuit
+Xpc clk reset id[15:0] PCSEL[2:0] ra[31:0] ia[31:0] PC_4_SXTC[31:0] PC_4[31:0] PC_UNIT
+* initialise regfile unit circuit
+Xregfile clk wasel ra2sel werf id[25:11] WDSEL_OUT[31:0] ra[31:0] rb[31:0] mwd[31:0] z REGFILE_UNIT
+* initialise control unit circuit
+Xcu z reset irq ia31 id[31:26] asel bsel ra2sel alufn[5:0] moe wdsel[1:0] wasel werf wr pcsel[2:0] CONTROL_UNIT
+* initialise alu+wdsel unit circuit
+Xalu ia31 id[15:0] ra[31:0] rb[31:0] PC_4[31:0] PC_4_SXTC[31:0] ASEL BSEL ALUFN[5:0] WDSEL[1:0] mrd[31:0] ma[31:0] WDSEL_OUT[31:0] ALUWDSEL_UNIT
+* END ANSWER
+.ends
+
+
+

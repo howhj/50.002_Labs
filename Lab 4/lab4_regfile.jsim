@@ -1,0 +1,71 @@
+* .include "nominal.jsim"
+* .include "stdcell.jsim"
+* .include "lab4_testregfile.jsim"
+
+.subckt REGFILE_UNIT clk wasel ra2sel werf id[25:11] WDSEL_OUT[31:0] ra[31:0] rb[31:0] mwd[31:0] z
+
+* Constant XP
+Xxp1 vdd#4 XP[4:1] bus 
+Xxp2 0 XP0 bus
+
+**** RA2SEL mux ************
+* BEGIN ANSWER
+Xra2sel[4:0] ra2sel#5 id[15:11] id[25:21] ra2mux[4:0] mux2
+* END ANSWER
+****************************
+
+**** WASEL mux *************
+* BEGIN ANSWER
+Xwasel[4:0] wasel#5 id[25:21] XP[4:0] WA[4:0] mux2
+* END ANSWER
+****************************
+
+
+**** Regfile memory ********
+* BEGIN ANSWER
+Xregfile
++ vdd 0 0 id[20:16] rda[31:0]
++ vdd 0 0 ra2mux[4:0] rdb[31:0]
++ 0 clk werf WA[4:0] WDSEL_OUT[31:0]
++ $memory width=32 nlocations=31
+* END ANSWER
+
+* R31 checker for RD1 
+* BEGIN ANSWER
+Xanda1 id20 id19 id18 id17 anda and4
+Xanda2 id16 anda r31asel and2
+* END ANSWER
+
+* RD1 mux
+* BEGIN ANSWER
+Xr31a[31:0] r31asel#32 rda[31:0] 0#32 ra[31:0] mux2
+* END ANSWER
+
+* R31 checker for RD2
+* BEGIN ANSWER
+Xandb1 ra2mux4 ra2mux3 ra2mux2 ra2mux1 andb and4
+Xandb2 ra2mux0 andb r31bsel and2
+* END ANSWER
+
+* RD2 mux
+* BEGIN ANSWER
+Xr31b[31:0] r31bsel#32 rdb[31:0] 0#32 rb[31:0] mux2
+* END ANSWER
+****************************
+
+**** Z computation *********
+* BEGIN ANSWER
+Xzora[7:0] ra[31:24] ra[23:16] ra[15:8] ra[7:0] zora[7:0] or4
+Xzorb[1:0] zora[7:6] zora[5:4] zora[3:2] zora[1:0] zorb[1:0] or4
+Xzorc zorb1 zorb0 zorc or2
+Xzinv zorc z inverter
+* END ANSWER
+****************************
+
+**** mwd[31:0] output ******
+* BEGIN ANSWER
+Xmwd mwd[31:0] rb[31:0] bus
+* END ANSWER
+****************************
+
+.ends

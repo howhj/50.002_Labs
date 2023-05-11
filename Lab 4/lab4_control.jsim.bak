@@ -1,0 +1,115 @@
+.include "nominal.jsim"
+.include "stdcell.jsim"
+* .include "lab4_testcontrol.jsim"
+
+.subckt CONTROL_UNIT z reset irq ia31 id[31:26] asel bsel ra2sel alufn[5:0] moe wdsel[1:0] wasel werf wr pcsel[2:0] 
+
+**** ROM **** 
+Xrom vdd 0 0 id[31:26] 			// one read port
++ pcsel_temp[2:0] wasel_cu asel ra2sel bsel alufn[5:0] wdsel_cu[1:0] werf_cu moe wr_temp
++ $memory width=18 nlocations=64 contents=(
++ 0b011100000000000100//opcode=0b000000
++ 0b011100000000000100//opcode=0b000001
++ 0b011100000000000100//opcode=0b000010
++ 0b011100000000000100//opcode=0b000011
++ 0b011100000000000100//opcode=0b000100
++ 0b011100000000000100//opcode=0b000101
++ 0b011100000000000100//opcode=0b000110
++ 0b011100000000000100//opcode=0b000111
++ 0b011100000000000100//opcode=0b001000
++ 0b011100000000000100//opcode=0b001001
++ 0b011100000000000100//opcode=0b001010
++ 0b011100000000000100//opcode=0b001011
++ 0b011100000000000100//opcode=0b001100
++ 0b011100000000000100//opcode=0b001101
++ 0b011100000000000100//opcode=0b001110
++ 0b011100000000000100//opcode=0b001111
++ 0b011100000000000100//opcode=0b010000
++ 0b011100000000000100//opcode=0b010001
++ 0b011100000000000100//opcode=0b010010
++ 0b011100000000000100//opcode=0b010011
++ 0b011100000000000100//opcode=0b010100
++ 0b011100000000000100//opcode=0b010101
++ 0b011100000000000100//opcode=0b010110
++ 0b011100000000000100//opcode=0b010111
++ 0b000000100000010110//opcode=0b011000 (LD)
++ 0b000001100000000001//opcode=0b011001 (ST)
++ 0b011100000000000100//opcode=0b011010
++ 0b010010001101000100//opcode=0b011011 (JMP)
++ 0b011100000000000100//opcode=0b011100
++ 0b000000001101000100//opcode=0b011101 (BEQ/BF)
++ 0b000010001101000100//opcode=0b011110 (BNE/BT)
++ 0b000010001101010110//opcode=0b011111 (LDR)
++ 0b000000000000001100//opcode=0b100000 (ADD)
++ 0b000000000000101100//opcode=0b100001 (SUB)
++ 0b011100000000000100//opcode=0b100010 
++ 0b011100000000000100//opcode=0b100011
++ 0b000000011001101100//opcode=0b100100 (CMPEQ)
++ 0b000000011010101100//opcode=0b100101 (CMPLT)
++ 0b000000011011101100//opcode=0b100110 (CMPLE)
++ 0b011100000000000100//opcode=0b100111
++ 0b000000001100001100//opcode=0b101000 (AND)
++ 0b000000001111001100//opcode=0b101001 (OR)
++ 0b000000001011001100//opcode=0b101010 (XOR)
++ 0b011100000000000100//opcode=0b101011
++ 0b000000010000001100//opcode=0b101100 (SHL)
++ 0b000000010000101100//opcode=0b101101 (SHR)
++ 0b000000010001101100//opcode=0b101110 (SRA)
++ 0b011100000000000100//opcode=0b101111 
++ 0b000000100000001100//opcode=0b110000 (ADDC)
++ 0b000000100000101100//opcode=0b110001 (SUBC)
++ 0b011100000000000100//opcode=0b110010
++ 0b011100000000000100//opcode=0b110011
++ 0b000000111001101100//opcode=0b110100 (CMPEQC)
++ 0b000000111010101100//opcode=0b110101 (CMPLTC)
++ 0b000000111011101100//opcode=0b110110 (CMPLEC)
++ 0b011100000000000100//opcode=0b110111
++ 0b000000101100001100//opcode=0b111000 (ANDC)
++ 0b000000101111001100//opcode=0b111001 (ORC)
++ 0b000000101011001100//opcode=0b111010 (XORC)
++ 0b011100000000000100//opcode=0b111011
++ 0b000000110000001100//opcode=0b111100 (SHLC)
++ 0b000000110000101100//opcode=0b111101 (SHRC)
++ 0b000000110001101100//opcode=0b111110 (SRAC)
++ 0b011100000000000100//opcode=0b111111
++ //
++ )
+
+* reset mux 
+Xresetmux reset wr_temp 0 wr_cu mux2 
+
+**** Branch check **********
+* BEGIN ANSWER
+* Get BRANCH_CHECK
+Xbc0 id31 bc0 inverter
+Xbc1 bc0 id30 id29 id28 bc1 and4
+Xbc2 id27 id26 bc2 xor2
+Xbc3 bc1 bc2 bc and2
+
+* z mux
+Xzsel z id26 zsel xor2
+Xbranch0 zsel vdd 0 branch0 mux2
+.connect 0 branch[2:1]
+
+* Get PCSEL_CU
+Xbrsel[2:0] bc#3 pcsel_temp[2:0] branch[2:0] pcsel_cu[2:0] mux2
+* END ANSWER
+****************************
+
+
+****  IRQ handling *********
+* BEGIN ANSWER
+Xusercheck ia31 inv31 inverter
+Xirqsel inv31 irq irqsel and2
+
+Xwdsel[1:0] irqsel#2 wdsel_cu[1:0] 0#2 wdsel[1:0] mux2
+Xwasel irqsel wasel_cu vdd wasel mux2
+Xwerf irqsel werf_cu vdd werf mux2
+Xwr irqsel wr_cu 0 wr mux2
+
+Xpcsel2 irqsel pcsel_cu2 vdd pcsel2 mux2
+Xpcsel[1:0] irqsel#2 pcsel_cu[1:0] 0#2 pcsel[1:0] mux2
+* END ANSWER
+****************************
+
+.ends

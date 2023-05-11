@@ -1,0 +1,133 @@
+.include "nominal.jsim"
+.include "stdcell.jsim"
+.include "lab3_mult.jsim"
+* .include "lab3_testadder.jsim"
+* .include "lab3_testcompare.jsim"
+* .include "lab3_testboolean.jsim"
+* .include "lab3_testshifter.jsim"
+* .include "lab3_testmultiply.jsim"
+*.include "lab3checkoff.jsim"
+
+
+
+
+**********************************
+**** FA circuit ******************
+.subckt FA a b cin s co
+* Paste your answer from Lab 2 here
+* Replace the gates using stdcell gates instead of your custom gates
+* BEGIN ANSWER
+Xs1 a b 1 xor2
+Xs2 cin 1 s xor2
+Xc1 a b 2 nand2
+Xc2 b cin 3 nand2
+Xc3 a cin 4 nand2
+Xc4 2 3 4 co nand3
+* END ANSWER
+.ends
+
+**********************************
+**** Adder32 circuit *************
+.subckt adder32 ALUFN[0] a[31:0] b[31:0] s[31:0] z v n
+* BEGIN ANSWER
+Xfa0 a0 bx0 ALUFN0 s0 c0 FA
+Xfa[31:1] a[31:1] bx[31:1] c[30:0] s[31:1] c[31:1] FA
+Xbx[31:0] b[31:0] ALUFN0#32 bx[31:0] xor2
+
+* n signal
+.connect s31 n
+
+* v signal
+Xvs s31 vs inverter
+Xva a31 va inverter
+Xvb bx31 vb inverter
+Xv0 a31 bx31 vs v0 and3
+Xv1 va vb s31 v1 and3
+Xv2 v0 v1 v or2
+
+* z signal
+Xz[7:0] s[7:0] s[15:8] s[23:16] s[31:24] z[7:0] nor4
+Xz8 z7 z6 z5 z4 z10 nand4
+Xz9 z3 z2 z1 z0 z11 nand4
+Xz10 z10 z11 z nor2
+* END ANSWER
+.ends
+*********************************
+
+
+**********************************
+**** Compare32 circuit ***********
+.subckt compare32 ALUFN[2:1] z v n cmp[31:0]
+* BEGIN ANSWER
+Xout ALUFN1 ALUFN2 0 z nv znv cmp0 mux4
+Xnv n v nv xor2
+Xznv z nv znv or2
+.connect cmp[31:1] 0
+* END ANSWER
+.ends
+**********************************
+
+**********************************
+**** Boolean32 circuit ***********
+.subckt boole32 ALUFN[3:0] A[31:0] B[31:0] boole[31:0]
+* BEGIN ANSWER
+Xbool[31:0] a[31:0] b[31:0] ALUFN0#32 ALUFN1#32 ALUFN2#32 ALUFN3#32 boole[31:0] mux4
+* END ANSWER
+.ends
+**********************************
+
+**********************************
+**** Shifter32 circuit ***********
+.subckt shift32 ALUFN[1:0] A[31:0] B[4:0] shift[31:0]
+* BEGIN ANSWER
+* Left Shifter
+Xshlw[31:16] b4#16 a[31:16] a[15:0] lw[31:16] mux2
+Xshlw[15:0] b4#16 a[15:0] 0#16 lw[15:0] mux2
+Xshlx[31:8] b3#24 lw[31:8] lw[23:0] lx[31:8] mux2
+Xshlx[7:0] b3#8 lw[7:0] 0#8 lx[7:0] mux2
+Xshly[31:4] b2#28 lx[31:4] lx[27:0] ly[31:4] mux2
+Xshly[3:0] b2#4 lx[3:0] 0#4 ly[3:0] mux2
+Xshlz[31:2] b1#30 ly[31:2] ly[29:0] lz[31:2] mux2
+Xshlz[1:0] b1#2 ly[1:0] 0#2 lz[1:0] mux2
+Xshl[31:1] b0#31 lz[31:1] lz[30:0] shl[31:1] mux2
+Xshl0 b0 lz0 0 shl0 mux2
+
+* Right Shifter
+Xshrw[31:16] b4#16 a[31:16] 0#16 rw[31:16] mux2
+Xshrw[15:0] b4#16 a[15:0] a[31:16] rw[15:0] mux2
+Xshrx[31:24] b3#8 rw[31:24] 0#8 rx[31:24] mux2
+Xshrx[23:0] b3#24 rw[23:0] rw[31:8] rx[23:0] mux2
+Xshry[31:28] b2#4 rx[31:28] 0#4 ry[31:28] mux2
+Xshry[27:0] b2#28 rx[27:0] rx[31:4] ry[27:0] mux2
+Xshrz[31:30] b1#2 ry[31:30] 0#2 rz[31:30] mux2
+Xshrz[29:0] b1#30 ry[29:0] ry[31:2] rz[29:0] mux2
+Xshr31 b0 rz31 0 shr31 mux2
+Xshr[30:0] b0#31 rz[30:0] rz[31:1] shr[30:0] mux2
+
+* Right Arithmetic Shifter
+Xsraw[31:16] b4#16 a[31:16] a31#16 aw[31:16] mux2
+Xsraw[15:0] b4#16 a[15:0] a[31:16] aw[15:0] mux2
+Xsrax[31:24] b3#8 aw[31:24] a31#8 ax[31:24] mux2
+Xsrax[23:0] b3#24 aw[23:0] aw[31:8] ax[23:0] mux2
+Xsray[31:28] b2#4 ax[31:28] a31#4 ay[31:28] mux2
+Xsray[27:0] b2#28 ax[27:0] ax[31:4] ay[27:0] mux2
+Xsraz[31:30] b1#2 ay[31:30] a31#2 az[31:30] mux2
+Xsraz[29:0] b1#30 ay[29:0] ay[31:2] az[29:0] mux2
+Xsra31 b0 az31 a31 sra31 mux2
+Xsra[30:0] b0#31 az[30:0] az[31:1] sra[30:0] mux2
+
+* Combiner
+Xshift[31:0] ALUFN1#32 ALUFN0#32 shl[31:0] 0#32 shr[31:0] sra[31:0] shift[31:0] mux4
+* END ANSWER
+.ends
+**********************************
+
+**********************************
+**** ALU32 circuit ***************
+.subckt alu ALUFN[5:0] A[31:0] B[31:0] alu[31:0] z v n
+* BEGIN ANSWER
+
+
+* END ANSWER
+.ends
+**********************************
